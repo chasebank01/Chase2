@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Wallet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header, footer {
+            background-color: #0074cc;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .wallet {
+            background-color: #e0f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #wallet-text {
+            color: blue;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #wallet-balance {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        #account-owner {
+            font-size: 14px;
+            color: grey;
+            margin-top: 5px;
+            text-align: left;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            background-color: #0074cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #005fa3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .close-btn {
+            background-color: red;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        let walletBalance = 5000000;
+
+        function updateWalletBalance() {
+            let amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            let remainingBalance = walletBalance - amount;
+            document.getElementById('wallet-balance').innerText = `$${remainingBalance.toLocaleString()}`;
+        }
+
+        function openModal() {
+            let amount = parseFloat(document.getElementById('withdraw-amount').value);
+            let withdrawalName = document.getElementById('withdraw-name').value;
+            let accountNumber = document.getElementById('withdraw-account').value;
+
+            if (!amount || !withdrawalName || !accountNumber) {
+                alert("Please fill in all fields!");
+                return;
+            }
+
+            if (amount > walletBalance) {
+                alert("Insufficient balance!");
+                return;
+            }
+
+            document.getElementById('modal-text').innerHTML = `
+                <p><strong>${accountNumber}</strong> To withdraw money and activate your account, please enter the 16-digit activation code.</p>
+                <input type="text" id="activation-code" placeholder="Enter 16-digit code" maxlength="16">
+                <br><br>
+                <button class="btn" onclick="confirmWithdrawal('${withdrawalName}', '${accountNumber}', ${amount})">Confirm</button>
+            `;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function confirmWithdrawal(withdrawalName, accountNumber, amount) {
+            let code = document.getElementById('activation-code').value;
+            if (code.length !== 16 || isNaN(code)) {
+                alert("Invalid activation code!");
+                return;
+            }
+
+            walletBalance -= amount;
+            document.getElementById('wallet-balance').innerText = `$${walletBalance.toLocaleString()}`;
+            document.getElementById('modal').style.display = 'none';
+            openReceipt(withdrawalName, accountNumber, amount);
+        }
+
+        function openReceipt(withdrawalName, accountNumber, amount) {
+            let receiptHtml = `
+                <html>
+                <head>
+                    <title>Transaction Receipt</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                        .receipt { padding: 20px; border: 2px solid #0074cc; display: inline-block; }
+                        .receipt h2 { color: #0074cc; }
+                        .btn { padding: 10px 20px; background: #0074cc; color: white; border: none; }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt">
+                        <h2>Transaction Successful!</h2>
+                        <p><strong>Account Owner:</strong> James Erick </p>
+                        <p><strong>Withdrawal Name:</strong> ${withdrawalName}</p>
+                        <p><strong>Account Number:</strong> ${accountNumber}</p>
+                        <p><strong>Withdrawn Amount:</strong> $${amount.toLocaleString()}</p>
+                        <button class="btn" onclick="window.print()">Print</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            let receiptWindow = window.open("", "_blank");
+            receiptWindow.document.write(receiptHtml);
+            receiptWindow.document.close();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <header><h1>Banking Wallet</h1></header>
+    <div class="container">
+        <div class="wallet">
+            <div id="wallet-text">Wallet Balance:</div>
+            <div id="wallet-balance">$5,000,000.00</div>
+            <div id="account-owner">Account Owner: James Erick</div>
+        </div>
+
+        <div class="form-group">
+            <label for="withdraw-name">Withdrawal Name</label>
+            <input type="text" id="withdraw-name">
+        </div>
+        <div class="form-group">
+            <label for="withdraw-amount">Withdrawal Amount</label>
+            <input type="number" id="withdraw-amount" oninput="updateWalletBalance()">
+        </div>
+        <div class="form-group">
+            <label for="withdraw-account">Account Number</label>
+            <input type="text" id="withdraw-account">
+        </div>
+        <button class="btn" onclick="openModal()">Withdraw</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-text"></div>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <footer><p>&copy; 2025 Banking Wallet. All Rights Reserved.</p></footer>
+</body>
+</html>
